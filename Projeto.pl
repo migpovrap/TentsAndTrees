@@ -23,4 +23,35 @@ vizinhancaAlargada((X, Y), Sres):-
     vizinhanca((X,Y),L1),
     append(L1,[(Left,Down),(Right,Up),(Left,Up),(Right,Down)], Res),
     sort(Res, Sres).
+
+
+/*
+    -todasCeculas/2(Tabuleiro, TodasCeculas) é verdade se TodasCeculas é uma lista ordenada de cima para baixo e da 
+    esquerda para a direita, sem elementos repetidos, com todas as coordenadas do tabuleiro Tabuleiro.
+*/
+todasCelulas(T, TodasCelulas):-
+    findall((Lin,Col),( 
+    nth1(Lin,T,TabY),%Itera sobre as linhas
+    nth1(Col,TabY,_)),%Itera sobre as colunas
+    Cords),
+    sort(Cords,TodasCelulas).
     
+
+todasCelulas(T, TodasCelulas, Objeto):-
+    (var(Objeto) ->
+        findall((Lin,Col),( 
+        nth1(Lin,T,TabY),
+        nth1(Col,TabY,Objeto),
+        Objeto = '_'),
+        Cords),
+        sort(Cords,TodasCelulas) ; 
+        
+        findall((Lin,Col),( 
+        nth1(Lin,T,TabY),
+        nth1(Col,TabY,El),
+        Objeto == El),
+        Cords),
+        sort(Cords,TodasCelulas)).
+
+    
+

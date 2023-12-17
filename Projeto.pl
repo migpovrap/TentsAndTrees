@@ -149,3 +149,38 @@ inacessiveis(Tabuleiro):-
     setof((L, C), (member((L, C), Vizarvoresflat), (between(1, Size, L), between(1, Size, C))), Vizarvores),
     findall((L,C),(member((L,C), TodasCelulas), \+member((L,C), Vizarvores), \+member((L,C), Celulasarvores)), Cordinacessiveis),
     maplist(insereObjectoCelula(Tabuleiro, r), Cordinacessiveis).
+
+
+aproveita(P):-
+    P = (T, Nl, Nc),
+    length(T, Size),
+    todasCelulas(T, CelulasVazias, _),
+    calculaObjectosTabuleiro(T,CLinhas, CColunas, _),
+    findall((L,C), (
+        nth1(L, CLinhas, X),
+        nth1(L, Nl, X),
+        between(1,Size,C),
+        member((L,C), CelulasVazias)),
+        ListaCordsL),
+    writeln(ListaCordsL),
+    maplist(insereObjectoCelula(T, 't'), ListaCordsL),
+    findall((L,C), (
+        nth1(C, CColunas, X),
+        nth1(C, Nc, X),
+        between(1, Size, L),
+        member((L,C), CelulasVazias)),
+        ListaCordsC),
+    writeln(ListaCordsC),
+    maplist(insereObjectoCelula(T, 't'), ListaCordsC).
+
+    
+%Ainda não foi testado, falta fazer o predicado unicaHipotese e criar testes para os dois 
+limpaVizinhancas(P):-
+    P = (T,_,_),
+    length(T, Size),
+    todasCelulas(T, Cordstendas, 't'),
+    maplist(vizinhancaAlargada(), Cordstendas, Vizalatendastemp),
+    flatten(Vizalatendastemp, Vizalatendas),
+    findall((L,C), (celulaVazia((L,C),T), between(1, Size, L), between(1,Size, C), member((L,C), Vizalatendas)), Lista),
+    maplist(insereObjectoCelula(T, 'r'), Lista).
+

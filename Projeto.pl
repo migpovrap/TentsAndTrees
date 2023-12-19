@@ -162,7 +162,6 @@ aproveita(P):-
         between(1,Size,C),
         member((L,C), CelulasVazias)),
         ListaCordsL),
-    writeln(ListaCordsL),
     maplist(insereObjectoCelula(T, 't'), ListaCordsL),
     findall((L,C), (
         nth1(C, CColunas, X),
@@ -170,17 +169,40 @@ aproveita(P):-
         between(1, Size, L),
         member((L,C), CelulasVazias)),
         ListaCordsC),
-    writeln(ListaCordsC),
     maplist(insereObjectoCelula(T, 't'), ListaCordsC).
 
-    
-%Ainda não foi testado, falta fazer o predicado unicaHipotese e criar testes para os dois 
+
 limpaVizinhancas(P):-
     P = (T,_,_),
     length(T, Size),
     todasCelulas(T, Cordstendas, 't'),
     maplist(vizinhancaAlargada(), Cordstendas, Vizalatendastemp),
     flatten(Vizalatendastemp, Vizalatendas),
-    findall((L,C), (celulaVazia((L,C),T), between(1, Size, L), between(1,Size, C), member((L,C), Vizalatendas)), Lista),
+    findall((L,C), (between(1, Size, L), between(1,Size, C), member((L,C), Vizalatendas)), Lista),
     maplist(insereObjectoCelula(T, 'r'), Lista).
 
+
+unicaHipotese(P):-
+    P = (T,_,_),
+    length(T, Size),
+    todasCelulas(T, Cordsarvores, 'a'),
+    todasCelulas(T, Cordsvazias, _),
+    maplist(vizinhanca(), Cordsarvores, Vizarvoreslol),
+    todasCelulas(T, Tendascords, 't'),
+    findall(ListaCord, (
+        member(ListaCord, Vizarvoreslol),
+        member(Cord, ListaCord),
+        member(Cord, Tendascords)),ListaApagar),
+    subtract(Vizarvoreslol, ListaApagar, Vizarvoreslimpa),
+    findall(Vizcords, (
+        nth1(_, Vizarvoreslimpa, Vizarvorestemp),
+        findall((L, C), (
+            member((L, C), Cordsvazias),
+            member((L, C), Vizarvorestemp),
+            between(1, Size, L),
+            between(1, Size, C)),
+        Vizcords),
+        length(Vizcords,1)),
+    Vizarvores),
+    flatten(Vizarvores, ListColocaTenda),
+    maplist(insereObjectoCelula(T, 't'), ListColocaTenda).

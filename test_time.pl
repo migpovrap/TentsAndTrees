@@ -4,6 +4,23 @@
     Sendo que alguns destes testes foram gerados pelo Github Copilot.
 */
 
+measure:-
+    measure_time431,
+    measure_time432,
+    measure_time433,
+    measure_time434,
+    measure_time435.
+
+measure_resolve:-
+    statistics(walltime, [Start,_]),
+    puzzle(6-14, P), 
+    resolve(P),
+    statistics(walltime, [End,_]),
+    Time is End - Start,
+    format('Execution time: ~3f seconds.~n', [Time / 1000]),
+    format('Output do predicado: ~w~n', [P]).
+
+
 measure_time431:-
     statistics(walltime, [Start,_]),
     puzzle(6-14, P), 

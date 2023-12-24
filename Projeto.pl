@@ -139,6 +139,9 @@ insereObjectoEntrePosicoesauxrelva(Tabuleiro, TendaOuRelva, C1, C2, L):-
    Outra hipotese para o predicado relva*/
 
 
+/*
+    Predicado que prenceche com relva todos os espaços que não se encontram na vizinhanca de uma arvore.
+*/
 inacessiveis(Tabuleiro):-
     todasCelulas(Tabuleiro, Celulasarvores, a),
     todasCelulas(Tabuleiro, TodasCelulas),
@@ -150,7 +153,7 @@ inacessiveis(Tabuleiro):-
     findall((L,C),(member((L,C), TodasCelulas), \+member((L,C), Vizarvores), \+member((L,C), Celulasarvores)), Cordinacessiveis),
     maplist(insereObjectoCelula(Tabuleiro, r), Cordinacessiveis).
 
-
+%Completa com tendas todas as linhas e colunas que so tem os espcos livres necesarios para corresponder aos valores que sao pedidos para o numero de tendas nas linhas e colunas
 aproveita(P):-
     P = (T, Nl, Nc),
     length(T, Size),
@@ -172,6 +175,7 @@ aproveita(P):-
     maplist(insereObjectoCelula(T, 't'), ListaCordsC).
 
 
+%Coloca relva nas posicoes que se encontram a volta das tendas
 limpaVizinhancas(P):-
     P = (T,_,_),
     length(T, Size),
@@ -182,6 +186,8 @@ limpaVizinhancas(P):-
     maplist(insereObjectoCelula(T, 'r'), Lista).
 
 
+%Coloca uma tenda no unico lugar possivel de forma todas as arvores que tinham apenas uma posicao livre na sua vizinhanca que lhes 
+%permitia ficar ligadas a uma tenda, tem agora uma tenda nessa posicao.
 unicaHipotese(P):-
     P = (T,_,_),
     length(T, Size),
@@ -206,3 +212,45 @@ unicaHipotese(P):-
     Vizarvores),
     flatten(Vizarvores, ListColocaTenda),
     maplist(insereObjectoCelula(T, 't'), ListColocaTenda).
+
+
+%Verifica se cada arvore so tem uma tenda ligada a si
+valida(LArv, LTen):-
+    maplist(vizinhanca(), LArv, Listatemp),
+    findall(TenArv,
+        (nth1(_, Listatemp, Temp), 
+        findall((L, C), (member((L, C), LTen), member((L, C), Temp)), TenArvTemp), sort(TenArvTemp, TenArv)),
+    ListaTenArv),
+    length(ListaTenArv, N),
+    flatten(ListaTenArv, LitstaTenFlat),
+    sort(LitstaTenFlat, ListaTenOrd),
+    length(ListaTenOrd, N).
+
+
+%Predicado final que tenta resolver o puzzle primeiro de forma heuristica e a seguir para as posicoes que faltam usa as carecteristicas de backtrack do prolog
+resolve(P):-
+    P = (T,Tl,Tc),
+    relva(P),
+    inacessiveis(T),
+    aproveita(P),
+    relva(P),
+    unicaHipotese(P),
+    limpaVizinhancas(P),
+    calculaObjectosTabuleiro(T, Ntl, Ntc, 't'),
+    todasCelulas(T, Larv, 'a'),
+    todasCelulas(T, Lten, 't'),
+    todasCelulas(T, Vazias, _),
+    (Vazias = [] -> true 
+        ; 
+            member((L,C), Vazias),
+            insereObjectoCelula(T, 't', (L,C)),
+            Tl = Ntl, Tc = Ntc, valida(Larv, Lten),
+            relva(P),
+            limpaVizinhancas(P)
+        ;
+        resolve(P)).
+
+
+    /* maplist(vizinhanca(), Larv, Vizarvtemp),
+    flatten(Vizarvtemp, Vizarv),
+    setof((L,C), (member((L,C), Vaziastemp), member((L,C), Vizarv)), Vazias),*/

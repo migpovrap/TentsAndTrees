@@ -140,7 +140,7 @@ insereObjectoEntrePosicoesauxrelva(Tabuleiro, TendaOuRelva, C1, C2, L):-
 
 
 /*
-    Predicado que prenceche com relva todos os espaços que não se encontram na vizinhanca de uma arvore.
+    Predicado que prenceche com relva todos os espacos que nao se encontram na vizinhanca de uma arvore.
 */
 inacessiveis(Tabuleiro):-
     todasCelulas(Tabuleiro, Celulasarvores, a),
@@ -153,7 +153,7 @@ inacessiveis(Tabuleiro):-
     findall((L,C),(member((L,C), TodasCelulas), \+member((L,C), Vizarvores), \+member((L,C), Celulasarvores)), Cordinacessiveis),
     maplist(insereObjectoCelula(Tabuleiro, r), Cordinacessiveis).
 
-%Completa com tendas todas as linhas e colunas que so tem os espcos livres necesarios para corresponder aos valores que sao pedidos para o numero de tendas nas linhas e colunas
+%Completa com tendas todas as linhas e colunas que so tem os espacos livres necesarios para corresponder aos valores que sao pedidos para o numero de tendas nas linhas e colunas
 aproveita(P):-
     P = (T, Nl, Nc),
     length(T, Size),
@@ -249,8 +249,3 @@ resolve(P):-
             limpaVizinhancas(P)
         ;
         resolve(P)).
-
-
-    /* maplist(vizinhanca(), Larv, Vizarvtemp),
-    flatten(Vizarvtemp, Vizarv),
-    setof((L,C), (member((L,C), Vaziastemp), member((L,C), Vizarv)), Vazias),*/

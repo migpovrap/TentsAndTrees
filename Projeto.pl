@@ -226,26 +226,63 @@ valida(LArv, LTen):-
     sort(LitstaTenFlat, ListaTenOrd),
     length(ListaTenOrd, N).
 
+/*    Versao antiga do resolve so usa os precessos heuristicos
+    resolve(P):-
+        P = (T,_,_),
+        relva(P),
+        inacessiveis(T), %sai precisa de correr uma vez
+        aproveita(P),
+        relva(P),
+        unicaHipotese(P),
+        limpaVizinhancas(P),
+        todasCelulas(T, CelulasVazias, _),
+        (CelulasVazias = [], !
+            ;
+            resolve(P)).
+*/
 
-%Predicado final que tenta resolver o puzzle primeiro de forma heuristica e a seguir para as posicoes que faltam usa as carecteristicas de backtrack do prolog
+
+
+%Predicado inicial do resolve usado para comecar a resolver o puzzle aplicando um predicado heuristico necessario uma unica vez o inacessiveis
 resolve(P):-
-    P = (T,Tl,Tc),
+    P = (T,_,_),
     relva(P),
     inacessiveis(T),
-    aproveita(P),
-    relva(P),
-    unicaHipotese(P),
-    limpaVizinhancas(P),
-    calculaObjectosTabuleiro(T, Ntl, Ntc, 't'),
-    todasCelulas(T, Larv, 'a'),
-    todasCelulas(T, Lten, 't'),
-    todasCelulas(T, Vazias, _),
-    (Vazias = [] -> true 
-        ; 
-            member((L,C), Vazias),
-            insereObjectoCelula(T, 't', (L,C)),
-            Tl = Ntl, Tc = Ntc, valida(Larv, Lten),
-            relva(P),
-            limpaVizinhancas(P)
+    resolveheu(P,_).
+    
+%Usado para aplicar os predicados heuristicos ate que nao se verifiquem novas alteracoes no tabuleiro, caso deixe de haver alteracoes chama o predicado para verificar
+resolveheu(P, Pant):-
+        relva(P),
+        aproveita(P),
+        relva(P),
+        unicaHipotese(P),
+        limpaVizinhancas(P),
+        (dif(P, Pant) ->
+            resolveheu(P,P)
+            ;
+            resolveverifica(P)).
+
+%Predicado usado para verificar o puzzle caso  haja posicoes livres chama o predicado que aplica a forca bruta de forma a resolver o puzzle
+resolveverifica(P):-
+    P = (T,Nl,Nc),
+    calculaObjectosTabuleiro(T, CurrentNl, CurrentNc, t),
+    todasCelulas(T, Ltenda, t),
+    todasCelulas(T, Larv, a),
+    todasCelulas(T, CelulasVazias, _),
+    ((CelulasVazias = [], CurrentNc = Nc, CurrentNl = Nl, valida(Larv, Ltenda)) -> true 
         ;
-        resolve(P)).
+        resolvebruta(P)).
+
+resolvebruta(P):-
+    P = (T,_,_),
+    todasCelulas(T, CelulasVazias, _),
+    member((L,C), CelulasVazias),
+    insereObjectoCelula(T, t, (L,C)),
+    resolveheu(P,_).
+
+
+
+
+
+
+

@@ -11,7 +11,21 @@ measure:-
     measure_time434,
     measure_time435.
 
-measure_resolve:-
+
+measure_resolve81:-
+    statistics(walltime, [Start,_]),
+    puzzle(8-1, P), 
+    resolve(P),
+    statistics(walltime, [End,_]),
+    Time is End - Start,
+    format('Execution time: ~3f seconds.~n', [Time / 1000]),
+    format('Output do predicado: ~w~n', P),
+    Puzzle = ([[t,r,r,t,a,t,a,t],[a,r,r,r,r,r,r,a],[r,r,r,r,t,r,r,r],[r,a,t,r,a,r,t,r],[t,r,r,a,r,a,a,a],[a,r,r,t,r,t,r,t],[r,r,a,r,r,r,r,r],[r,r,t,a,t,r,r,r]],[4,0,1,2,1,3,0,2],[2,0,2,2,2,2,1,2]),
+    assertion(P = Puzzle).
+
+
+
+measure_resolve614:-
     statistics(walltime, [Start,_]),
     puzzle(6-14, P), 
     resolve(P),

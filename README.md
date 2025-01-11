@@ -1,5 +1,5 @@
 # Puzzle Solver
-This project is a Prolog-based puzzle solver for a specific type of puzzle involving tents, trees, and grass. The puzzle is represented by a grid (matrix) where each cell can contain a tent (t), a tree (a), grass (r), or be empty (_). The goal is to place tents in the grid according to specific rules.
+This project is a Prolog-based puzzle solver for the Tents and Trees arcade game. The puzzle is represented by a grid (matrix) where each cell can contain a tent (t), a tree (a), grass (r), or be empty (_). The goal is to place tents in the grid according to specific rules.
 
 ## Puzzle Representation
 A puzzle is represented by a triple containing:

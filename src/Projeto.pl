@@ -213,7 +213,6 @@ unicaHipotese(P):-
     flatten(Vizarvores, ListColocaTenda),
     maplist(insereObjectoCelula(T, 't'), ListColocaTenda).
 
-
 %Verifica se cada arvore so tem uma tenda ligada a si
 valida(LArv, LTen):-
     maplist(vizinhanca(), LArv, Listatemp),
@@ -226,59 +225,43 @@ valida(LArv, LTen):-
     sort(LitstaTenFlat, ListaTenOrd),
     length(ListaTenOrd, N).
 
-validaTentVizinha(Viz, _, Tent) :-
-    member(Tent, Viz).
+% Main predicate to solve the puzzle
+resolve(P) :-
+    P = (T, _, _),
+    copy_term(T, TCopy), % Keep track of the previous state
+    (   relva(P), % Fill rows/columns where tent count is met
+        inacessiveis(T), % Mark inaccessible cells
+        aproveita(P), % Place tents when exact positions match the count
+        unicaHipotese(P), % Handle unique cases for tree-tent placement
+        limpaVizinhancas(P), % Mark surroundings of tents as grass
+        (TCopy == T -> true ; resolve(P)) % Reapply strategies if the board changes
+    ),
+    validaSolucao(P), % Validate the current solution
+    todasCelulas(T, CelulasVazias, _), % Retrieve remaining empty cells
+    tentaColocarTendas(P, CelulasVazias), % Use backtracking for remaining cases
+    !. % Ensure termination
 
-% resolve(P) solves the puzzle using trial and error
-resolve(P):-
-    P = (Tab, NumLin, NumCol),
-    % Initial validation
-    todasCelulas(Tab, Arvores, a),
-    length(Arvores, NumArvores),
-    sumlist(NumLin, TotalTendas),
-    NumArvores =:= TotalTendas,
-    % Setup and solve
-    inacessiveis(Tab),
-    applyStrategies(P),
-    tryTent(P, []).
+tentaColocarTendas(_, []) :- !. % Stop when no empty cells remain
+tentaColocarTendas(P, [(L, C) | Rest]) :-
+    P = (T, Nl, Nc),
+    (celulaVazia(T, (L, C)) -> % Check if cell is empty
+        (insereObjectoCelula(T, 't', (L, C)), % Place a tent
+            (validaSolucao((T, Nl, Nc)) -> % Validate solution after placement
+                tentaColocarTendas((T, Nl, Nc), Rest) % Continue solving if valid
+            ;  % Revert if invalid
+                (insereObjectoCelula(T, '_', (L, C)), % Remove the tent
+                fail)) % Fail to trigger backtracking
+        ) % Close the if-then-else block
+    ; true), % Skip if cell is not empty
+    tentaColocarTendas((T, Nl, Nc), Rest). % Process remaining cells
 
-tryTent(P, TriedCells):-
-    P = (Tab, NumLin, NumCol),
-    calculaObjectosTabuleiro(Tab, CLinhas, CColunas, t),
-    
-    % Early failure - check if current state is valid
-    forall(nth1(I, CLinhas, Val), (nth1(I, NumLin, Max), Val =< Max)),
-    forall(nth1(J, CColunas, Val), (nth1(J, NumCol, Max), Val =< Max)),
-    
-    % Get empty cells and check success condition
-    todasCelulas(Tab, EmptyCells, '_'),
-    (
-        % Success case - validate final state
-        (EmptyCells = [], 
-            CLinhas = NumLin,
-            CColunas = NumCol,
-            todasCelulas(Tab, Trees, a),
-            todasCelulas(Tab, Tents, t),
-            valida(Trees, Tents), !)
-        ;
-        % Try next tent placement
-        (
-            % Find valid tent position near tree
-            member(Coord, EmptyCells),
-            \+ member(Coord, TriedCells), % Ensure this cell hasn't been tried
-            todasCelulas(Tab, Trees, a),
-            vizinhanca(Coord, Neighbors),
-            member(Tree, Trees),
-            member(Tree, Neighbors),
-            
-            % Place tent and continue
-            insereObjectoCelula(Tab, t, Coord),
-            tryTent(P, [Coord|TriedCells])
-        )
-    ).
+% Validate if all constraints are satisfied
+validaSolucao(P) :-
+    P = (T, Nl, Nc),
+    calculaObjectosTabuleiro(T, CLinhas, CColunas, 't'), % Count tents
+    CLinhas = Nl, % Check row constraints
+    CColunas = Nc, % Check column constraints
+    todasCelulas(T, LArv, 'a'), % Get tree coordinates
+    todasCelulas(T, LTen, 't'), % Get tent coordinates
+    valida(LArv, LTen). % Ensure one-to-one tree-tent mapping
 
-applyStrategies(P) :-
-    relva(P),
-    aproveita(P),
-    limpaVizinhancas(P),
-    unicaHipotese(P).

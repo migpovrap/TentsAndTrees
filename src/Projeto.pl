@@ -1,7 +1,7 @@
 %Miguel Povoa Raposo, ist1109686
 :- use_module(library(clpfd)). % para poder usar transpose/2
 :- set_prolog_flag(answer_write_options,[max_depth(0)]). % ver listas completas
-:- ['puzzlesAcampar.pl']. % Ficheiro dado. No Mooshak tera mais puzzles.
+:- ['./puzzlesAcampar.pl']. % Ficheiro dado. No Mooshak tera mais puzzles.
 
 /*
     -vizinhanca((L,C), Vizinhanca) e verdade se Vizinhanca e uma lista ordenada de cima para baixo e da esquerda para a 
@@ -226,63 +226,59 @@ valida(LArv, LTen):-
     sort(LitstaTenFlat, ListaTenOrd),
     length(ListaTenOrd, N).
 
-/*    Versao antiga do resolve so usa os precessos heuristicos
-    resolve(P):-
-        P = (T,_,_),
-        relva(P),
-        inacessiveis(T), %sai precisa de correr uma vez
-        aproveita(P),
-        relva(P),
-        unicaHipotese(P),
-        limpaVizinhancas(P),
-        todasCelulas(T, CelulasVazias, _),
-        (CelulasVazias = [], !
-            ;
-            resolve(P)).
-*/
+validaTentVizinha(Viz, _, Tent) :-
+    member(Tent, Viz).
 
-
-
-%Predicado inicial do resolve usado para comecar a resolver o puzzle aplicando um predicado heuristico necessario uma unica vez o inacessiveis
+% resolve(P) solves the puzzle using trial and error
 resolve(P):-
-    P = (T,_,_),
-    relva(P),
-    inacessiveis(T),
-    resolveheu(P,_).
+    P = (Tab, NumLin, NumCol),
+    % Initial validation
+    todasCelulas(Tab, Arvores, a),
+    length(Arvores, NumArvores),
+    sumlist(NumLin, TotalTendas),
+    NumArvores =:= TotalTendas,
+    % Setup and solve
+    inacessiveis(Tab),
+    applyStrategies(P),
+    tryTent(P, []).
+
+tryTent(P, TriedCells):-
+    P = (Tab, NumLin, NumCol),
+    calculaObjectosTabuleiro(Tab, CLinhas, CColunas, t),
     
-%Usado para aplicar os predicados heuristicos ate que nao se verifiquem novas alteracoes no tabuleiro, caso deixe de haver alteracoes chama o predicado para verificar
-resolveheu(P, Pant):-
-        relva(P),
-        aproveita(P),
-        relva(P),
-        unicaHipotese(P),
-        limpaVizinhancas(P),
-        (dif(P, Pant) ->
-            resolveheu(P,P)
-            ;
-            resolveverifica(P)).
-
-%Predicado usado para verificar o puzzle caso  haja posicoes livres chama o predicado que aplica a forca bruta de forma a resolver o puzzle
-resolveverifica(P):-
-    P = (T,Nl,Nc),
-    calculaObjectosTabuleiro(T, CurrentNl, CurrentNc, t),
-    todasCelulas(T, Ltenda, t),
-    todasCelulas(T, Larv, a),
-    todasCelulas(T, CelulasVazias, _),
-    ((CelulasVazias = [], CurrentNc = Nc, CurrentNl = Nl, valida(Larv, Ltenda)) -> true 
+    % Early failure - check if current state is valid
+    forall(nth1(I, CLinhas, Val), (nth1(I, NumLin, Max), Val =< Max)),
+    forall(nth1(J, CColunas, Val), (nth1(J, NumCol, Max), Val =< Max)),
+    
+    % Get empty cells and check success condition
+    todasCelulas(Tab, EmptyCells, '_'),
+    (
+        % Success case - validate final state
+        (EmptyCells = [], 
+            CLinhas = NumLin,
+            CColunas = NumCol,
+            todasCelulas(Tab, Trees, a),
+            todasCelulas(Tab, Tents, t),
+            valida(Trees, Tents), !)
         ;
-        resolvebruta(P)).
+        % Try next tent placement
+        (
+            % Find valid tent position near tree
+            member(Coord, EmptyCells),
+            \+ member(Coord, TriedCells), % Ensure this cell hasn't been tried
+            todasCelulas(Tab, Trees, a),
+            vizinhanca(Coord, Neighbors),
+            member(Tree, Trees),
+            member(Tree, Neighbors),
+            
+            % Place tent and continue
+            insereObjectoCelula(Tab, t, Coord),
+            tryTent(P, [Coord|TriedCells])
+        )
+    ).
 
-resolvebruta(P):-
-    P = (T,_,_),
-    todasCelulas(T, CelulasVazias, _),
-    member((L,C), CelulasVazias),
-    insereObjectoCelula(T, t, (L,C)),
-    resolveheu(P,_).
-
-
-
-
-
-
-
+applyStrategies(P) :-
+    relva(P),
+    aproveita(P),
+    limpaVizinhancas(P),
+    unicaHipotese(P).

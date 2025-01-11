@@ -1,3 +1,4 @@
+:-['../src/Projeto.pl']. %Carrega o ficheiro do projeto.
 % Auxiliar para avaliacao 
 limpaTabuleiro([], []) :-!.
 limpaTabuleiro([L | T], [L1 | T1]) :- limpaLinha(L, L1), limpaTabuleiro(T, T1).
